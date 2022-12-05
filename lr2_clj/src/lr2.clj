@@ -19,7 +19,7 @@
                    (recur (conj setOfMessages mess)))
                  )
                (if (apply = setOfMessages)
-                        (go(>! chanWrite (first setOfMessages)))
+                        (>! chanWrite (first setOfMessages))
                         (println "The messages are different!")
                      )
                )
