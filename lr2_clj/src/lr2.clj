@@ -1,22 +1,31 @@
-(def channelWrite (a/chan 10))
-(def channelRead1 (a/chan 10))
-(def channelRead2 (a/chan 10))
-(def channelRead3 (a/chan 10))
+(def channelWrite (chan 10))
+(def channelRead1 (chan 10))
+(def channelRead2 (chan 10))
+(def channelRead3 (chan 10))
+(def channelRead4 (chan 10))
 
-(>!! channelRead1 "hello")
-(>!! channelRead2 "hello")
-(>!! channelRead3 "hello")
+(go (>! channelRead1 "hello"))
+(go (>! channelRead2 "hello"))
+(go (>! channelRead3 "hello"))
+(go (>! channelRead4 "hello"))
 
-(def setOfChannelsRead [channelRead1 channelRead2 channelRead3])
-
-(defn writeToChannel [chanW setOfChanR]
-    (def setOfMessages (map <!! setOfChanR))
-    (if (apply = setOfMessages)
-            (>!! chanW (first setOfMessages))
-            (println "The messages are different!")
-        )
+(defn writeToChannel [chanWrite & setOfChanRead]
+  (def setOfChan (into [] setOfChanRead))
+  (go-loop [setOfMessages []]
+             (if (> (count setOfChan) 0)
+               (let [mess (<! (last setOfChan))]
+                 (do
+                   (def setOfChan (pop setOfChan))
+                   (recur (conj setOfMessages mess)))
+                 )
+               (if (apply = setOfMessages)
+                        (go(>! chanWrite (first setOfMessages)))
+                        (println "The messages are different!")
+                     )
+               )
+             )
     )
 
-(writeToChannel channelWrite setOfChannelsRead)
+(writeToChannel channelWrite channelRead1 channelRead2 channelRead3 channelRead4)
 
 (take! channelWrite println)
